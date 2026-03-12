@@ -28,26 +28,18 @@ const STANDARD_FILTER_KEYS = new Set([
  */
 function mapEloFilterToNostr(raw: Record<string, unknown>): Filter {
   const mapped: Record<string, unknown> = {};
-  const mappedKeys: string[] = [];
   for (const [key, value] of Object.entries(raw)) {
     if (STANDARD_FILTER_KEYS.has(key)) {
       mapped[key] = value;
     } else if (key.length === 2 && /^([a-z])\1$/.test(key)) {
       // doubled lowercase letter → #UPPERCASE  (kk → #K, ee → #E)
-      const nostrKey = `#${key.charAt(0).toUpperCase()}`;
-      mapped[nostrKey] = value;
-      mappedKeys.push(`${key} → ${nostrKey}`);
+      mapped[`#${key.charAt(0).toUpperCase()}`] = value;
     } else if (key.length === 1 && /^[a-z]$/.test(key)) {
       // single lowercase letter → #letter  (p → #p, e → #e)
-      const nostrKey = `#${key}`;
-      mapped[nostrKey] = value;
-      mappedKeys.push(`${key} → ${nostrKey}`);
+      mapped[`#${key}`] = value;
     } else {
       mapped[key] = value;
     }
-  }
-  if (mappedKeys.length > 0) {
-    logger.info(`Filter key mapping: ${mappedKeys.join(", ")}`);
   }
   return mapped as Filter;
 }
