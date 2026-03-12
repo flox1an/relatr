@@ -1,0 +1,15 @@
+{
+  "kind": 765,
+  "pubkey": "0f0c15457799aac79848730a6d466cd89bec73ad59973b4c52431bd2890974fe",
+  "created_at": 1760000001,
+  "tags": [
+    ["n", "report_penalty"],
+    ["relatr-version", "^0.1.16"],
+    ["weight", "0.25"],
+    ["title", "NIP-1984 Report Penalty"],
+    ["description", "Penalizes pubkeys reported via kind 1984. Returns 1.0 for clean pubkeys, approaches 0.0 for severely reported ones. Illegal reports cause immediate zero."]
+  ],
+  "content": "plan\n  reports = do 'nostr.query' {kinds: [1984], p: [_.targetPubkey], limit: 100}\nin\nlet\n  events = reports | [],\n  total = length(events),\n  ptags = map(events, fn(e ~> find(fetch(e, .tags) | [], fn(t ~> at(t, 0) == 'p' and at(t, 1) == _.targetPubkey)))),\n  reasons = map(ptags, fn(t ~> at(t, 2) | 'other')),\n  has_illegal = length(filter(reasons, fn(r ~> r == 'illegal'))) > 0,\n  has_impersonation = length(filter(reasons, fn(r ~> r == 'impersonation'))) > 0,\n  has_spam = length(filter(reasons, fn(r ~> r == 'spam'))) > 0,\n  has_profanity = length(filter(reasons, fn(r ~> r == 'profanity'))) > 0,\n  has_nudity = length(filter(reasons, fn(r ~> r == 'nudity'))) > 0,\n  worst = if has_illegal then 1.0\n          else if has_impersonation then 0.8\n          else if has_spam then 0.6\n          else if has_profanity then 0.3\n          else if has_nudity then 0.2\n          else 0.1,\n  count_factor = if has_illegal then 1\n                 else if total > 2 then 1\n                 else if total == 2 then 0.67\n                 else if total == 1 then 0.33\n                 else 0,\n  penalty = worst * count_factor\nin\n  if total == 0 then 1.0\n  else 1.0 - penalty\n",
+  "id": "",
+  "sig": ""
+}
