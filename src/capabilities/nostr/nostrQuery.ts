@@ -5,12 +5,59 @@ import { withTimeout } from "@/utils/utils";
 
 const logger = new Logger({ service: "nostrQuery" });
 
+/** Standard Nostr filter keys that should not be transformed. */
+const STANDARD_FILTER_KEYS = new Set([
+  "ids",
+  "kinds",
+  "authors",
+  "since",
+  "until",
+  "limit",
+  "search",
+]);
+
+/**
+ * Map Elo-compatible filter keys to Nostr tag filter keys.
+ *
+ * Elo does not support '#' or uppercase letters in identifiers, so plugins
+ * use a workaround:
+ *   - single lowercase letter  →  "#" + letter        (e.g. p  → #p)
+ *   - doubled lowercase letter →  "#" + uppercase      (e.g. kk → #K)
+ *
+ * Standard keys (ids, kinds, authors, …) pass through unchanged.
+ */
+function mapEloFilterToNostr(raw: Record<string, unknown>): Filter {
+  const mapped: Record<string, unknown> = {};
+  const mappedKeys: string[] = [];
+  for (const [key, value] of Object.entries(raw)) {
+    if (STANDARD_FILTER_KEYS.has(key)) {
+      mapped[key] = value;
+    } else if (key.length === 2 && /^([a-z])\1$/.test(key)) {
+      // doubled lowercase letter → #UPPERCASE  (kk → #K, ee → #E)
+      const nostrKey = `#${key.charAt(0).toUpperCase()}`;
+      mapped[nostrKey] = value;
+      mappedKeys.push(`${key} → ${nostrKey}`);
+    } else if (key.length === 1 && /^[a-z]$/.test(key)) {
+      // single lowercase letter → #letter  (p → #p, e → #e)
+      const nostrKey = `#${key}`;
+      mapped[nostrKey] = value;
+      mappedKeys.push(`${key} → ${nostrKey}`);
+    } else {
+      mapped[key] = value;
+    }
+  }
+  if (mappedKeys.length > 0) {
+    logger.info(`Filter key mapping: ${mappedKeys.join(", ")}`);
+  }
+  return mapped as Filter;
+}
+
 /**
  * Nostr query capability handler
  * Queries Nostr relays for events matching a filter
  *
  * Args:
- * - args: Nostr filter object
+ * - args: Nostr filter object (with Elo-compatible key shortcuts)
  *
  * Returns: Array of NostrEvent objects (max 1000 events, sorted deterministically)
  *
@@ -38,8 +85,8 @@ export const nostrQuery: CapabilityHandler = async (args, context) => {
     return [];
   }
 
-  // args is already a JSON object (Filter)
-  const filter = args as Filter;
+  // Map Elo-compatible keys (p, kk, etc.) to Nostr tag filter keys (#p, #K, etc.)
+  const filter = mapEloFilterToNostr(args as Record<string, unknown>);
 
   // Enforce deterministic constraints
   // Max limit of 1000 events
@@ -51,8 +98,6 @@ export const nostrQuery: CapabilityHandler = async (args, context) => {
   } else if (!filter.limit) {
     filter.limit = 1000;
   }
-
-  logger.debug(`Querying nostr with filter: ${JSON.stringify(filter)}`);
 
   try {
     const timeoutMs = context.config.capTimeoutMs || 30000;
@@ -89,7 +134,6 @@ export const nostrQuery: CapabilityHandler = async (args, context) => {
       return ida < idb ? -1 : ida > idb ? 1 : 0;
     });
 
-    logger.debug(`nostr.query returned ${events.length} events`);
     return events;
   } catch (error) {
     logger.warn(
