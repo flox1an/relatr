@@ -108,7 +108,7 @@ export class RelatrFactory {
 
       // Step 4: Initialize network components and builders first
       const pool = new RelayPool();
-      const socialGraphBuilder = new SocialGraphBuilder(pool);
+      const socialGraphBuilder = new SocialGraphBuilder(pool, validatedConfig.followKinds);
       const pubkeyMetadataFetcher = new PubkeyMetadataFetcher(
         pool,
         metadataRepository,

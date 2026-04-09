@@ -46,9 +46,11 @@ interface DiscoveryResult {
  */
 export class SocialGraphBuilder {
   private pool: RelayPool;
+  private followKinds: number[];
 
-  constructor(pool: RelayPool) {
+  constructor(pool: RelayPool, followKinds: number[] = [3]) {
     this.pool = pool;
+    this.followKinds = followKinds;
   }
 
   /**
@@ -161,12 +163,12 @@ export class SocialGraphBuilder {
       let hopEventsFetched = 0;
 
       for (let attempt = 1; attempt <= GRAPH_FETCH_MAX_ATTEMPTS; attempt++) {
-        // Fetch contact lists for this hop with streaming ingestion to avoid memory accumulation
-        // Events are processed immediately via onBatch callback and ingested into DuckDB,
-        // preventing O(n) memory scaling with network size.
+        // Fetch follow events for all configured kinds in a single filter with streaming
+        // ingestion to avoid memory accumulation. Events are processed immediately via
+        // onBatch callback and ingested into DuckDB, preventing O(n) memory scaling.
         await fetchEventsForPubkeys(
           pubkeysForThisHop,
-          3,
+          this.followKinds,
           undefined,
           this.pool,
           {

@@ -57,6 +57,7 @@ function createService(overrides?: {
     eloPluginWeights: {},
     adminPubkeys: [],
     isPublicServer: false,
+    followKinds: [3],
   };
 
   return new SearchService(

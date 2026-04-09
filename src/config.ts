@@ -109,6 +109,14 @@ export const RelatrConfigSchema = z.object({
     .positive()
     .default(15)
     .describe("Maximum relays to store per user in pubkey_kv"),
+
+  // Follow kinds
+  followKinds: z
+    .array(z.number().int().positive())
+    .default([3])
+    .describe(
+      "Nostr event kinds to query for follow extraction (e.g. 3,10020). Defaults to [3].",
+    ),
 });
 
 /**
@@ -215,6 +223,11 @@ export function loadConfig(): RelatrConfig {
     // Relay capping
     maxStoredRelays: process.env.MAX_STORED_RELAYS
       ? parseInt(process.env.MAX_STORED_RELAYS, 10)
+      : undefined,
+
+    // Follow kinds
+    followKinds: process.env.FOLLOW_KINDS
+      ? process.env.FOLLOW_KINDS.split(",").map((k) => parseInt(k.trim(), 10))
       : undefined,
   };
 

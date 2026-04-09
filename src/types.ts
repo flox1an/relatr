@@ -67,6 +67,12 @@ export interface RelatrConfig {
    * Relay capping configuration
    */
   maxStoredRelays?: number;
+
+  /**
+   * Nostr event kinds to query when building the social graph follow list.
+   * Defaults to [3] (NIP-02 contact list). Add e.g. 10020 for NIP-51 media follows.
+   */
+  followKinds: number[];
 }
 export interface MetricWeights {
   distanceWeight: number;

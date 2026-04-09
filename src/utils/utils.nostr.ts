@@ -108,7 +108,7 @@ export async function negSyncFromRelays(
  */
 export async function fetchEventsForPubkeys(
   pubkeys: string[],
-  kind: number,
+  kinds: number | number[],
   relays: string[] = NEG_RELAYS,
   pool: RelayPool,
   options?: {
@@ -122,13 +122,14 @@ export async function fetchEventsForPubkeys(
   },
 ): Promise<NostrEvent[]> {
   const { onBatch, batchSize = DEFAULT_BATCH_SIZE } = options || {};
+  const kindList = Array.isArray(kinds) ? kinds : [kinds];
 
   const totalBatches = Math.ceil(pubkeys.length / batchSize);
 
   for (let i = 0; i < pubkeys.length; i += batchSize) {
     const batchIndex = Math.floor(i / batchSize) + 1;
     logger.info(
-      `📥 Fetching kind ${kind} events: batch ${batchIndex}/${totalBatches} (${i + 1}-${Math.min(i + batchSize, pubkeys.length)} of ${pubkeys.length} pubkeys)`,
+      `📥 Fetching kinds [${kindList.join(",")}] events: batch ${batchIndex}/${totalBatches} (${i + 1}-${Math.min(i + batchSize, pubkeys.length)} of ${pubkeys.length} pubkeys)`,
     );
     const batch = pubkeys.slice(i, i + batchSize);
 
@@ -149,7 +150,7 @@ export async function fetchEventsForPubkeys(
         pool,
         relays,
         {
-          kinds: [kind],
+          kinds: kindList,
           authors: batch,
         },
         signal,
@@ -163,7 +164,7 @@ export async function fetchEventsForPubkeys(
     } finally {
       clearTimeout(timer);
       batchEventStore.removeByFilters({
-        kinds: [kind],
+        kinds: kindList,
         authors: batch,
       });
     }

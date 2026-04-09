@@ -42,6 +42,7 @@ const testConfig: RelatrConfig = {
   eloPluginWeights: {},
   adminPubkeys: [],
   isPublicServer: false,
+  followKinds: [3],
 };
 
 // Test data with sample plugin metrics (using namespaced names)
