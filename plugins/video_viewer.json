@@ -1,0 +1,26 @@
+{
+  "id": "",
+  "pubkey": "d3aa7e54cc5fc3e2390984bfc6faabfa1a9316118c30dff53b47e3dabe655aef",
+  "created_at": 1760000000,
+  "kind": 765,
+  "tags": [
+    [
+      "n",
+      "video_viewer"
+    ],
+    [
+      "relatr-version",
+      "^0.1.16"
+    ],
+    [
+      "title",
+      "Video viewer engagement"
+    ],
+    [
+      "description",
+      "Scores higher for pubkeys that actively interact with videos (comments, reactions, zaps) — measures consumption and engagement, not creation."
+    ]
+  ],
+  "content": "plan\n  comments = do 'nostr.query' {kinds: [1111], authors: [_.targetPubkey], '#K': ['21', '22', '34235', '34236'], limit: 100},\n  reactions = do 'nostr.query' {kinds: [7], authors: [_.targetPubkey], '#k': ['21', '22', '34235', '34236'], limit: 100},\n  zaps = do 'nostr.query' {kinds: [9735], authors: [_.targetPubkey], '#k': ['21', '22', '34235', '34236'], limit: 100}\nin\nlet\n  cList = comments | [],\n  rList = reactions | [],\n  zList = zaps | [],\n  total = length(cList) + length(rList) + length(zList)\nin\nif total > 50 then 1.0\nelse if total > 25 then 0.85\nelse if total > 10 then 0.7\nelse if total > 5 then 0.5\nelse if total > 0 then 0.25\nelse 0.0\n",
+  "sig": ""
+}

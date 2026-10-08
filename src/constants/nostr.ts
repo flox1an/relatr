@@ -5,14 +5,12 @@ export const SEARCH_RELAYS = [
 ];
 
 export const NEG_RELAYS = [
-  "wss://relay.damus.io",
   "wss://profiles.nostr1.com/",
   "wss://wot.grapevine.network/",
   "wss://relay.nostr.net",
 ];
 
 export const COMMON_RELAYS = [
-  "wss://relay.damus.io",
   "wss://relay.nostr.band",
   "wss://relay.snort.social",
   "wss://nos.lol",

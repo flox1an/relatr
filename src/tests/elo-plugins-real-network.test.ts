@@ -18,7 +18,7 @@ const REAL_NETWORK_PLUGIN_CONFIG = {
 const RUN_REAL_NETWORK_TESTS = process.env.RUN_REAL_NETWORK_TESTS === "true";
 
 // Real-world fixtures (operator-provided)
-const RELAYS = ["wss://relay.damus.io", "wss://nos.lol"];
+const RELAYS = ["", "wss://nos.lol"];
 const GIGI_PUBKEY =
   "6e468422dfb74a5738702a8823b9b28168abab8655faacb6853cd0ee15deee93";
 const GIGI_NIP05 = "_@dergigi.com";
