@@ -351,10 +351,6 @@ export class RelatrFactory {
             pubkeys,
             sourcePubkey: validatedConfig.defaultSourcePubkey,
           });
-          schedulerService.markBootstrapMetadataFresh(
-            pubkeys,
-            validatedConfig.defaultSourcePubkey,
-          );
         } catch (error) {
           logger.warn(
             "Initial metadata fetch failed:",
