@@ -317,6 +317,7 @@ export class RelatrFactory {
         settingsRepository,
         pool,
         taService || undefined,
+        pubkeyKvRepository,
       );
       scheduleValidationWarmup = (
         sourcePubkey?: string,
