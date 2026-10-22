@@ -4,8 +4,10 @@
 
 ### Security
 
-- Rebuild both compiled executables with Bun 1.4.4 to reject the compromised
-  eMudhra/emSign certificate chains. Application dependencies and database schema are unchanged.
+- Use Bun 1.4.4 to reject the compromised eMudhra/emSign certificate chains.
+  Run the server as a JavaScript bundle so external native DuckDB dependencies
+  resolve from the filesystem rather than the compiled executable's virtual path.
+  Application dependencies and database schema are unchanged.
 
 ## 0.2.11
 

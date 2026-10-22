@@ -32,14 +32,14 @@ RUN bun run generate:version
 # Build the local relo workspace so its exported dist files exist for bundling
 RUN cd /usr/src/app/relo && bun run build
 
-# Compile the MCP server as the main entry point
-RUN bun build --compile --minify --sourcemap ./src/mcp/server.ts --outfile relatr --external "@duckdb/node-api" --external "@duckdb/node-bindings-*"
+# Keep native DuckDB dependencies external and resolve them from the real filesystem.
+RUN bun build --target bun --minify --sourcemap ./src/mcp/server.ts --outdir runtime --external "@duckdb/node-api" --external "@duckdb/node-bindings-*"
 RUN bun build --compile --minify --sourcemap ./manager.ts --outfile manager --external "@duckdb/node-api" --external "@duckdb/node-bindings-*"
 
-# copy production dependencies and compiled binary into final image
+# copy production dependencies, server bundle and compiled manager into final image
 FROM base AS release
 COPY --from=install /temp/prod/node_modules node_modules
-COPY --from=prerelease /usr/src/app/relatr .
+COPY --from=prerelease /usr/src/app/runtime ./runtime
 COPY --from=prerelease /usr/src/app/manager .
 RUN mkdir -p /usr/src/app/plugins/elo
 
@@ -67,4 +67,4 @@ ENV GRAPH_BINARY_PATH=/usr/src/app/data/socialGraph.bin
 # Use --user flag when running docker to match host user UID
 # Example: docker run --user $(id -u):$(id -g) ...
 EXPOSE 3000/tcp
-CMD [ "./manager", "-c", "./relatr", "-e", "/usr/src/app/data/.env" ]
+CMD [ "./manager", "-c", "bun ./runtime/server.js", "-e", "/usr/src/app/data/.env" ]
