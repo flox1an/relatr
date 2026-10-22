@@ -1,5 +1,12 @@
 # relatr
 
+## Unreleased
+
+### Security
+
+- Rebuild both compiled executables with Bun 1.4.4 to reject the compromised
+  eMudhra/emSign certificate chains. Application dependencies and database schema are unchanged.
+
 ## 0.2.11
 
 ### Patch Changes
