@@ -1,7 +1,7 @@
 import type { RelayPool } from "applesauce-relay";
 import type { NostrProfile } from "@/types";
 import { mapWithConcurrency } from "@/utils/mapWithConcurrency";
-import type { NostrEvent } from "nostr-social-duck";
+import { firstValueFrom, timeout } from 'rxjs';
 
 export interface ProfileFetcher {
   fetchProfiles(pubkeys: string[]): Promise<Map<string, NostrProfile>>;
@@ -32,50 +32,16 @@ export class RelayProfileFetcher implements ProfileFetcher {
 
   private async fetchProfile(pubkey: string): Promise<NostrProfile> {
     try {
-      const event = await new Promise<NostrEvent | null>((resolve, reject) => {
-        let settled = false;
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-        const finalize = (value: NostrEvent | null) => {
-          if (settled) return;
-          settled = true;
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-          resolve(value);
-        };
-
-        const fail = (error: unknown) => {
-          if (settled) return;
-          settled = true;
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-          }
-          reject(error);
-        };
-
-        const subscription = this.pool
+      const event = await firstValueFrom(
+        this.pool
           .request(this.nostrRelays, {
             kinds: [0],
             authors: [pubkey],
             limit: 1,
           })
-          .subscribe({
-            next: (event) => {
-              subscription.unsubscribe();
-              finalize(event);
-            },
-            error: (error) => {
-              subscription.unsubscribe();
-              fail(error);
-            },
-          });
-
-        timeoutId = setTimeout(() => {
-          subscription.unsubscribe();
-          finalize(null);
-        }, this.timeoutMs);
-      });
+          .pipe(timeout({ first: this.timeoutMs })),
+        { defaultValue: null },
+      );
 
       if (!event || !event.content) {
         return { pubkey };

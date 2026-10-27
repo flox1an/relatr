@@ -17,6 +17,7 @@
 - The MCP server entrypoint is [`src/mcp/server.ts`](src/mcp/server.ts).
 - Persistent storage uses DuckDB with schema file [`src/database/duckdb-schema.sql`](src/database/duckdb-schema.sql).
 - The main service composition lives under [`src/service/`](src/service), with graph logic under [`src/graph/`](src/graph), capabilities under [`src/capabilities/`](src/capabilities), and plugin execution under [`src/plugins/`](src/plugins).
+- [`RelayProfileFetcher`](src/graph/RelayProfileFetcher.ts) returns `{ pubkey }` as soon as a relay query completes without a profile; its 10-second timeout only bounds unfinished queries.
 
 ## Setup Commands
 
